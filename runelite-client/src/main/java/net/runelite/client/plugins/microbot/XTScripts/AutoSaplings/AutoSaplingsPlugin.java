@@ -38,18 +38,18 @@ public class AutoSaplingsPlugin extends Plugin {
     protected void shutDown() {
         autoSaplingsScript.shutdown();
     }
-    int ticks = 10;
-    @Subscribe
-    public void onGameTick(GameTick tick)
-    {
-        //System.out.println(getName().chars().mapToObj(i -> (char)(i + 3)).map(String::valueOf).collect(Collectors.joining()));
-
-        if (ticks > 0) {
-            ticks--;
-        } else {
-            ticks = 10;
-        }
-
-    }
+//    int ticks = 10;
+//    @Subscribe
+//    public void onGameTick(GameTick tick)
+//    {
+//        //System.out.println(getName().chars().mapToObj(i -> (char)(i + 3)).map(String::valueOf).collect(Collectors.joining()));
+//
+//        if (ticks > 0) {
+//            ticks--;
+//        } else {
+//            ticks = 10;
+//        }
+//
+//    }
 
 }

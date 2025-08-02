@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 enum State {
     SETUP,
+    UPDATE_JOB,
     RETRIEVE_SEED,
     RETRIEVE_FILLED_PLANT_POTS,
     SAPLING_CREATION,
@@ -27,15 +28,10 @@ enum State {
 
 public class AutoSaplingsScript extends Script {
 
-
-//    static AutoSaplingsConfig config;
-
-
-//    State state = State.SETUP;
-
-
-
-
+    public static final String ASTRAL_RUNE = "Astral rune";
+    public static final String MYSTIC_STEAM_STAFF = "Mystic steam staff";
+    public static final String GARDENING_TROWEL = "Gardening trowel";
+    public static final String FILLED_PLANT_POT = "Filled plant pot";
 
     public Queue<SaplingJob> createJobQueue(AutoSaplingsConfig config){
 
@@ -104,70 +100,70 @@ public class AutoSaplingsScript extends Script {
         return jobQueue;
     };
 
-
-
-
     public void setup(){
         // Open Bank
         sleepUntil(Rs2Bank::openBank, 20000);
+
+        Rs2Bank.depositEquipment();
+        sleep(1000,1300);
+        Rs2Bank.depositAll();
+        sleep(1000,1300);
+
+
         // Withdraw staff, equip it
-        Rs2Bank.withdrawAndEquip("Mystic steam staff");
-        sleepUntil(() -> Rs2Equipment.isWearing("Mystic steam staff"), 20000);
+        if (!Rs2Equipment.isWearing(MYSTIC_STEAM_STAFF)) {
+            Rs2Bank.withdrawAndEquip(MYSTIC_STEAM_STAFF);
+            sleepUntil(() -> Rs2Equipment.isWearing(MYSTIC_STEAM_STAFF), 20000);
+        }
 
         // Withdraw seed, astral runes, trowel
-        Rs2Bank.withdrawX("Astral rune", 100);
-        Rs2Bank.withdrawOne("Gardening trowel");
-//        Rs2Bank.withdrawX(PLANT_POT, 25);
+        if (!Rs2Inventory.contains(ASTRAL_RUNE)){
+            Rs2Bank.withdrawAll(ASTRAL_RUNE);
+            sleepUntil(() -> Rs2Inventory.contains(ASTRAL_RUNE));
+        }
+        if (!Rs2Inventory.contains(GARDENING_TROWEL)){
+            Rs2Bank.withdrawOne(GARDENING_TROWEL);
+            sleepUntil(() -> Rs2Inventory.contains(GARDENING_TROWEL));
+        }
 
     }
 
     public void retrieveSeed(SaplingJob currentJob){
         String seed = currentJob.getSEED();
-        if (Rs2Bank.hasItem(seed)){
+        if (Rs2Bank.hasItem(seed, true)){
             Rs2Bank.withdrawAll(seed);
-            sleepUntil(() -> Rs2Inventory.hasItem(seed));
+            sleepUntil(() -> Rs2Inventory.hasItem(seed, true));
 
             Rs2Inventory.moveItemToSlot(Rs2Inventory.get(seed), 27);
             sleep(1000);
         }
+        else{
+            Microbot.stopPlugin(AutoSaplingsPlugin.class);
+            shutdown();
+        }
     }
 
-//    public void depositSaplings(SaplingJob currentJob){
-//        sleepUntil(Rs2Bank::openBank, 20000);
-//
-//        if (Rs2Inventory.contains(SEEDLING_WATERED)){
-//            Rs2Bank.depositAll(SEEDLING_WATERED);
-//        }
-//
-//        if (Rs2Inventory.contains((SEEDLING))){
-//            Rs2Bank.depositAll(SEEDLING);
-//        }
-//
-//        if (Rs2Inventory.contains((PLANT_POT))){
-//            Rs2Bank.depositAll(PLANT_POT);
-//        }
-//
-//        Rs2Bank.withdrawX(PLANT_POT, 25);
-//        Rs2Bank.withdrawAll(true, SEED);
-//
-//        Rs2Bank.closeBank();
-//        state = State.SAPLING_CREATION;
-//    }
+    public void createSaplings(SaplingJob currentJob){
 
-    public void createSaplings(){
+        if (Rs2Inventory.contains(currentJob.getSEED())){
+            if (!Rs2Inventory.contains(FILLED_PLANT_POT) || (Rs2Inventory.emptySlotCount() > 0)){
+                Rs2Bank.withdrawAll(FILLED_PLANT_POT);
+                sleepUntil(() -> Rs2Inventory.contains(FILLED_PLANT_POT));
+            }
 
+        } else {
+            Microbot.stopPlugin(AutoSaplingsPlugin.class);
+            shutdown();
+        }
         sleepUntil(Rs2Bank::closeBank, 20000);
         Rs2Inventory.open();
         sleepUntil(Rs2Inventory::isOpen, 20000);
 
-        // while there are seeds and filled plant pots, use seeds on filled plant pots
-        while(Rs2Inventory.contains("Filled plant pot") && Rs2Inventory.contains(SEED)){
-//            Rs2Inventory.combineClosest(PLANT_POT, SEED);
+        // Combine items in inventory
+        while(Rs2Inventory.containsAll(FILLED_PLANT_POT, ASTRAL_RUNE, GARDENING_TROWEL) && Rs2Inventory.contains(currentJob.getSEED())){
             Rs2Inventory.slotInteract(26, "Use");
             Rs2Inventory.slotInteract(27);
         }
-
-        state = State.HUMIDIFY;
     }
 
     public void castHumidify(SaplingJob currentJob){
@@ -180,6 +176,7 @@ public class AutoSaplingsScript extends Script {
             Rs2Magic.cast(MagicAction.HUMIDIFY);
             sleep(1000,1200);
             sleepUntil(() -> !Rs2Player.isAnimating());
+
         }
 
         Rs2Inventory.open();
@@ -189,23 +186,48 @@ public class AutoSaplingsScript extends Script {
         String seedling_watered = currentJob.getSEEDLING_WATERED();
         String sapling = currentJob.getSAPLING();
 
+        sleepUntil(Rs2Bank::openBank, 20000);
+
         if (Rs2Inventory.contains(seedling_watered)){
             Rs2Bank.depositAll(seedling_watered);
         }
         if (Rs2Inventory.contains(sapling)){
             Rs2Bank.depositAll(sapling);
         }
+        sleep(500,1200);
     }
 
-    State state = State.SETUP;
+    public void updateJob(){
+        if (currentJob == null){
+            if (jobQueue.isEmpty()){
+                // Stop script if no jobs in queue and no active jobs
+                System.out.println("Job Queue is empty. Stopping Script ... ");
+                Microbot.stopPlugin(AutoSaplingsPlugin.class);
+                shutdown();
+            }
+            else{
+                currentJob = jobQueue.poll();
+                System.out.println("Currently Processing : " + currentJob);
+            }
+        }
+
+    }
+
+    State state = null;
+    Queue<SaplingJob> jobQueue = null;
     SaplingJob currentJob = null;
 
     public boolean run(AutoSaplingsConfig config) {
 
-        Microbot.log("A quick script! This is the Saplings Script! -- Reloaded!!!!");
+        Microbot.log("== Sapling Creation Script loaded ==");
+
+        state = State.SETUP;
+        currentJob = null;
+        jobQueue = null;
+
 
         // Create job queue
-        Queue<SaplingJob> jobQueue = createJobQueue(config);
+        jobQueue = createJobQueue(config);
         System.out.print("Jobs in the queue: ");
         for (SaplingJob job : jobQueue) {
             System.out.print(job + " , ");
@@ -214,40 +236,46 @@ public class AutoSaplingsScript extends Script {
 
 
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            if (currentJob == null){
-                if (jobQueue.isEmpty()){
-                    // Stop script if no jobs in queue and no active jobs
-                    System.out.println("Job Queue is empty. Stopping Script ... ");
-                    Microbot.stopPlugin(AutoSaplingsPlugin.class);
-                    shutdown();
-                    return;
-                }
-                else{
-                    currentJob = jobQueue.poll();
-                    System.out.println("Currently Processing : " + currentJob);
-                }
-            }
-
+            System.out.println("Current State: " + state);
             switch (state){
                 case SETUP:
-                    System.out.println("Starting SETUP");
+                    Microbot.log("State : SETUP");
                     setup();
+                    state = State.UPDATE_JOB;
+                    break;
+                case UPDATE_JOB:
+                    Microbot.log("State : UPDATE_JOB");
+                    updateJob();
+                    Microbot.log("Updating job. Current Job : " + currentJob);
                     state = State.RETRIEVE_SEED;
                     break;
                 case RETRIEVE_SEED:
-                    System.out.println("Starting RETRIEVE_SEED");
+                    Microbot.log("State : RETRIEVE_SEED");
                     retrieveSeed(currentJob);
                     state = State.SAPLING_CREATION;
                     break;
                 case SAPLING_CREATION:
-                    createSaplings();
+                    Microbot.log("State : SAPLING_CREATION");
+                    createSaplings(currentJob);
                     state = State.HUMIDIFY;
                     break;
                 case HUMIDIFY:
+                    Microbot.log("State : HUMIDIFY");
                     castHumidify(currentJob);
                     state = State.DEPOSIT_SAPLINGS;
                     break;
                 case DEPOSIT_SAPLINGS:
+                    Microbot.log("State : DEPOSIT_SAPLINGS");
+                    depositSaplings(currentJob);
+
+                    if (Rs2Inventory.contains(currentJob.getSEED())){
+                        state = State.SAPLING_CREATION;
+                    }
+                    else {
+                        currentJob = null;
+                        state = State.UPDATE_JOB;
+                    }
+                    break;
 
             }
         }, 0, 100, TimeUnit.MILLISECONDS);
