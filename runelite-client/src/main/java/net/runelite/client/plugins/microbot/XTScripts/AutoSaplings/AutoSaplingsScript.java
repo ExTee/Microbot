@@ -175,7 +175,8 @@ public class AutoSaplingsScript extends Script {
             // Cast humidify
             Rs2Magic.cast(MagicAction.HUMIDIFY);
             sleep(1000,1200);
-            sleepUntil(() -> !Rs2Player.isAnimating());
+//            sleepUntil(() -> !Rs2Player.isAnimating());
+            sleepUntilTick(3);
 
         }
 
