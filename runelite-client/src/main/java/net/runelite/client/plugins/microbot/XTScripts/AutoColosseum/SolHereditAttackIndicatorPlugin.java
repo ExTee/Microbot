@@ -41,7 +41,7 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
     protected void startUp() throws AWTException {
         if (overlayManager != null) {
             overlayManager.add(attackIndicatorOverlay);
-            attackIndicatorOverlay.previousAttack = null;
+//            attackIndicatorOverlay.previousAttack = null;
 //            attackIndicatorOverlay.myButton.hookMouseListener();
         }
 //        exampleScript.run(config);

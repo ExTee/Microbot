@@ -13,6 +13,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 enum ATTACK {
+    NOATTACK,
     SPEAR_1,
     SPEAR_2,
     SHIELD_1,
@@ -23,7 +24,8 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
 
     @Inject
     private Client client;
-    public ATTACK previousAttack;
+    public ATTACK previousAttack = ATTACK.NOATTACK;
+    public ATTACK currentAttack = ATTACK.NOATTACK;
     public boolean isAnimating = false;
 
 //    public final ButtonComponent myButton;
@@ -58,6 +60,20 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
 
             Rs2NpcModel npc = Rs2Npc.getNpc("Town Crier");
             if (npc.getAnimation() != -1) {
+                if (!isAnimating){
+                    isAnimating = true;
+                    switch (previousAttack){
+                        case NOATTACK:
+                            currentAttack = ATTACK.SPEAR_1;
+                            break;
+                        case SPEAR_1:
+                            currentAttack = ATTACK.SPEAR_2;
+                            break;
+                        case SPEAR_2:
+                            currentAttack = ATTACK.SPEAR_1;
+                            break;
+                    }
+                }
 
                 WorldPoint npc_wp = npc.getWorldLocation();
 //                LocalPoint npc_lp = LocalPoint.fromWorld(client, npc_wp);
@@ -65,21 +81,25 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
 //                ArrayList<LocalPoint> npc_lp_tiles = getTilesWithinDistance(npc_wp, 2);
 
                 ArrayList<LocalPoint> npc_lp_tiles = null;
-                if (previousAttack == ATTACK.SPEAR_1){
-                    npc_lp_tiles = getSafeTiles(npc_wp, SPEAR_2_OFFSETS);
-                    npc_lp_tiles.forEach(lp -> renderTile(graphics, lp, Color.BLACK, 1, new Color(15, 173, 15, 50)));
-                    previousAttack = ATTACK.SPEAR_2;
-                }
-                else{
-                    npc_lp_tiles = getSafeTiles(npc_wp, SPEAR_1_OFFSETS);
-                    npc_lp_tiles.forEach(lp -> renderTile(graphics, lp, Color.BLACK, 1, new Color(15, 173, 15, 50)));
-                    previousAttack = ATTACK.SPEAR_1;
+                switch (currentAttack){
+                    case SPEAR_1:
+                        npc_lp_tiles = getSafeTiles(npc_wp, SPEAR_1_OFFSETS);
+                        npc_lp_tiles.forEach(lp -> renderTile(graphics, lp, Color.BLACK, 1, new Color(15, 173, 15, 50)));
+                        break;
+                    case SPEAR_2:
+                        npc_lp_tiles = getSafeTiles(npc_wp, SHIELD_1_OFFSETS);
+                        npc_lp_tiles.forEach(lp -> renderTile(graphics, lp, Color.BLACK, 1, new Color(15, 173, 15, 50)));
+                        break;
                 }
 
 
             }
             else{
-                isAnimating = false;
+                if (isAnimating){
+                    isAnimating = false;
+                    previousAttack = currentAttack;
+                    currentAttack = ATTACK.NOATTACK;
+                }
             }
 
 
