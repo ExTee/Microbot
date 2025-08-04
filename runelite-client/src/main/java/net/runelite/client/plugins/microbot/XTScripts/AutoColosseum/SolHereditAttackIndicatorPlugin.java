@@ -1,17 +1,17 @@
 package net.runelite.client.plugins.microbot.XTScripts.AutoColosseum;
 
-import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.events.GameTick;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
+import net.runelite.client.plugins.microbot.util.Global;
 import net.runelite.client.ui.overlay.OverlayManager;
-
 import javax.inject.Inject;
 import java.awt.*;
+
+
 
 @PluginDescriptor(
         name = "SolHereditAttackIndicator",
@@ -43,7 +43,7 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
 //            attackIndicatorOverlay.setPreviousAttack(ATTACK.NOATTACK);
 //            attackIndicatorOverlay.setCurrentAttack(ATTACK.NOATTACK);
             attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
-            attackIndicatorOverlay.isAnimating = false;
+//            attackIndicatorOverlay.isAnimating = false;
             overlayManager.add(attackIndicatorOverlay);
 //            attackIndicatorOverlay.previousAttack = null;
 //            attackIndicatorOverlay.myButton.hookMouseListener();
@@ -57,26 +57,87 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
 //        attackIndicatorOverlay.myButton.unhookMouseListener();
     }
 
+//    @Subscribe
+//    public void onGameTick(GameTick tick)
+//    {
+//        ATTACK previous_atk = attackIndicatorOverlay.attackStack.peek();
+//
+//        Microbot.log( "Previous Attack : " + previous_atk
+//                + "  |  "
+//                + "Current Animation: " + attackIndicatorOverlay.npc.getAnimation()
+//        );
+//
+//        if (attackIndicatorOverlay.npc.getAnimation() != previous_atk.getAnimationId()){
+//            Microbot.log("Animation is not the same as most recent attack. Setting isAnimating = False.");
+//            attackIndicatorOverlay.isAnimating = false;
+//        }
+//        if (isIdle()){
+//            Microbot.log("Animation is idle. Setting isAnimating = False.");
+//            attackIndicatorOverlay.isAnimating = false;
+//            return;
+//        }
+//        if (attackIndicatorOverlay.isAnimating){
+//            Microbot.log("Already animating. Doing nothing.");
+//            return;
+//        }
+//
+//        if (isSpearAttackAnimation()){
+//            if (previous_atk == ATTACK.SPEAR_1){
+//                Microbot.log("Previous attack was SPEAR_1, setting current attack to SPEAR_2.");
+//                attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_2);
+//            }
+//            else{
+//                // If the previous attack is shield, or none, set to spear 1
+//                Microbot.log("Previous attack was not SPEAR_1, setting current attack to SPEAR_1.");
+//                attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_1);
+//            }
+//            //Sleep for 5 more ticks
+//            attackIndicatorOverlay.isAnimating = true;
+//
+//            return;
+//        }
+//
+//        if (isShieldAttackAnimation()){
+//            if (previous_atk == ATTACK.SHIELD_1){
+//                Microbot.log("Previous attack was SHIELD_1, setting current attack to SHIELD_2.");
+//                attackIndicatorOverlay.attackStack.push(ATTACK.SHIELD_2);
+//            }
+//            else{
+//                // If the previous attack is shield, or none, set to shield 1
+//                Microbot.log("Previous attack was not SHIELD_1, setting current attack to SHIELD_1.");
+//                attackIndicatorOverlay.attackStack.push(ATTACK.SHIELD_1);
+//            }
+//            attackIndicatorOverlay.isAnimating = true;
+//            return;
+//        }
+//
+////         At this point, only possibility is special attack
+//        Microbot.log("Currently special attack. Resetting previous attack by adding NOATTACK.");
+//
+//        // Set previous and current to None (Special attack resets normal attacks)
+//        attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
+//        // Log that we're currently animating
+//        attackIndicatorOverlay.isAnimating = true;
+//
+//
+//    }
     @Subscribe
     public void onGameTick(GameTick tick)
     {
-        ATTACK previous_atk = attackIndicatorOverlay.attackStack.peek();
+        ATTACK previousAttack = attackIndicatorOverlay.attackStack.peek();
+        int currentAnimation = attackIndicatorOverlay.npc.getAnimation();
 
-        Microbot.log( "Previous Attack : " + previous_atk
-                + "  |  "
-                + "Current Animation: " + attackIndicatorOverlay.npc.getAnimation()
-        );
+        Microbot.log( "Previous Attack : " + previousAttack + "  |  " + "Current Animation: " + currentAnimation);
 
-        if (isIdle()){
-            attackIndicatorOverlay.isAnimating = false;
-            return;
-        }
-        if (attackIndicatorOverlay.isAnimating){
+        // Idle? Do nothing
+        if (currentAnimation == -1){
+            Microbot.log("Idling");
             return;
         }
 
+        // If Spear Animation
         if (isSpearAttackAnimation()){
-            if (previous_atk == ATTACK.SPEAR_1){
+            if (previousAttack == ATTACK.SPEAR_1){
                 Microbot.log("Previous attack was SPEAR_1, setting current attack to SPEAR_2.");
                 attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_2);
             }
@@ -85,12 +146,17 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
                 Microbot.log("Previous attack was not SPEAR_1, setting current attack to SPEAR_1.");
                 attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_1);
             }
-            attackIndicatorOverlay.isAnimating = true;
+            //Sleep for 5 more ticks
+            Microbot.log("- Sleeping for 5 ticks");
+            sleepUntilTick(5);
+
+//            attackIndicatorOverlay.isAnimating = true;
+
             return;
         }
 
         if (isShieldAttackAnimation()){
-            if (previous_atk == ATTACK.SHIELD_1){
+            if (previousAttack == ATTACK.SHIELD_1){
                 Microbot.log("Previous attack was SHIELD_1, setting current attack to SHIELD_2.");
                 attackIndicatorOverlay.attackStack.push(ATTACK.SHIELD_2);
             }
@@ -99,94 +165,32 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
                 Microbot.log("Previous attack was not SHIELD_1, setting current attack to SHIELD_1.");
                 attackIndicatorOverlay.attackStack.push(ATTACK.SHIELD_1);
             }
-            attackIndicatorOverlay.isAnimating = true;
+            //Sleep for 5 more ticks
+            Microbot.log("- Sleeping for 3 ticks");
+            sleepUntilTick(3);
             return;
         }
 
+        if (attackIndicatorOverlay.npc.getAnimation() == ATTACK.COMBO_2TICK.getAnimationId()){
+            Microbot.log("Normal Combo Attack - Sleeping for 10 ticks");
+            attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
+            sleepUntilTick(10);
+            return;
+        }
 
+        if (attackIndicatorOverlay.npc.getAnimation() == ATTACK.COMBO_2TICK.getAnimationId()){
+            Microbot.log("Combo Attack under 50% - Sleeping for 11 ticks");
+            attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
+            sleepUntilTick(11);
+            return;
+        }
 
-
-//         At this point, only possibility is special attack
-        Microbot.log("Currently special attack. Resetting previous attack.");
+    //         At this point, only possibility is special attack
+        Microbot.log("Currently special attack. Resetting previous attack by adding NOATTACK.");
 
         // Set previous and current to None (Special attack resets normal attacks)
         attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
-        // Log that we're currently animating
-        attackIndicatorOverlay.isAnimating = true;
 
-
-
-//        Microbot.log(
-//                "Previous Attack : " + attackIndicatorOverlay.getPreviousAttack()
-//                + "  |  "
-//                + "Current Attack: " + attackIndicatorOverlay.getCurrentAttack()
-//                + "  |  "
-//                + "isAnimating: " + attackIndicatorOverlay.isAnimating
-//                + "  |  "
-//                + "Animation: " + attackIndicatorOverlay.npc.getAnimation()
-//        );
-//        if (isIdle()){
-//
-//            if (attackIndicatorOverlay.getCurrentAttack() != ATTACK.NOATTACK){
-//                //If current attack is a noattack, don't do anything
-//
-//                Microbot.log("NPC is idle. Setting previous attack to " + attackIndicatorOverlay.getCurrentAttack());
-//                // Set previous attack to current attack
-//                attackIndicatorOverlay.setPreviousAttack(attackIndicatorOverlay.getCurrentAttack());
-//
-//                // Set current attack to none
-//                attackIndicatorOverlay.setCurrentAttack(ATTACK.NOATTACK);
-//
-//            }
-//            // Set isAnimating to False;
-//            attackIndicatorOverlay.isAnimating = false;
-//            return;
-//
-//
-//        }
-//
-//        if (alreadyAnimating()){
-//            Microbot.log("Already Animating. No state change required.");
-//            return;
-//        }
-//
-//        if (isSpearAttackAnimation()){
-//            if (attackIndicatorOverlay.getPreviousAttack() == ATTACK.SPEAR_1){
-//                Microbot.log("Previous attack was SPEAR_1, setting current attack to SPEAR_2.");
-//                attackIndicatorOverlay.setCurrentAttack(ATTACK.SPEAR_2);
-//            }
-//            else{
-//                // If the previous attack is shield, or none, set to spear 1
-//                Microbot.log("Previous attack was not SPEAR_1, setting current attack to SPEAR_1.");
-//                attackIndicatorOverlay.setCurrentAttack(ATTACK.SPEAR_1);
-//            }
-//            attackIndicatorOverlay.isAnimating = true;
-//            return;
-//        }
-//
-//        if (isShieldAttackAnimation()){
-//            if (attackIndicatorOverlay.getPreviousAttack() == ATTACK.SHIELD_1){
-//                Microbot.log("Previous attack was SHIELD_1, setting current attack to SHIELD_2.");
-//                attackIndicatorOverlay.setCurrentAttack(ATTACK.SHIELD_2);
-//            }
-//            else{
-//                // If the previous attack is shield, or none, set to shield 1
-//                Microbot.log("Previous attack was not SHIELD_1, setting current attack to SHIELD_1.");
-//                attackIndicatorOverlay.setCurrentAttack(ATTACK.SHIELD_1);
-//            }
-//            attackIndicatorOverlay.isAnimating = true;
-//            return;
-//        }
-//
-//        // At this point, only possibility is special attack
-//        Microbot.log("Currently special attack. Resetting previous attack.");
-//
-//        // Set previous and current to None (Special attack resets normal attacks)
-//        attackIndicatorOverlay.setPreviousAttack(ATTACK.NOATTACK);
-//        attackIndicatorOverlay.setCurrentAttack(ATTACK.NOATTACK);
-//
-//        // Log that we're currently animating
-//        attackIndicatorOverlay.isAnimating = true;
 
     }
 
@@ -202,6 +206,11 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
     }
     private boolean isShieldAttackAnimation(){
         return (attackIndicatorOverlay.npc.getAnimation() == 10885);
+    }
+
+    public boolean sleepUntilTick(int ticksToWait) {
+        int startTick = Microbot.getClient().getTickCount();
+        return Global.sleepUntil(() -> Microbot.getClient().getTickCount() >= startTick + ticksToWait, ticksToWait * 600 + 2000);
     }
 
     /*

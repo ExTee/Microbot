@@ -1,6 +1,8 @@
 package net.runelite.client.plugins.microbot.XTScripts.AutoColosseum;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -15,14 +17,20 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Stack;
 
+@Getter
+@RequiredArgsConstructor
 enum ATTACK {
-    NOATTACK,
-    SPEAR_1,
-    SPEAR_2,
-    SHIELD_1,
-    SHIELD_2,
-    GRAPPLE,
-    COMBO
+    NOATTACK(-1, -1),
+    SPEAR_1(10883, 6),
+    SPEAR_2(10883, 6),
+    SHIELD_1(10885, 4),
+    SHIELD_2(10885, 4),
+    GRAPPLE(-2,-2),
+    COMBO_2TICK(10887, 11),
+    COMBO_3TICK(10886, 12);
+
+    private final int animationId;
+    private final int duration;
 }
 
 public class SolHereditAttackIndicatorOverlay extends Overlay {
@@ -45,7 +53,7 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
     // Attack Stack
     public Stack<ATTACK> attackStack = new Stack<>();
 
-    boolean isAnimating = false;
+//    boolean isAnimating = false;
 
     @Inject
     SolHereditAttackIndicatorOverlay(SolHereditAttackIndicatorPlugin plugin)
@@ -64,7 +72,7 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
             npc = Rs2Npc.getNpc("Sol Heredit");
 //            npc = Rs2Npc.getNpc("Town Crier");
             ATTACK currentAttack = attackStack.peek();
-            if (isAnimating){
+            if ((currentAttack != ATTACK.NOATTACK) && (npc.getAnimation() != -1)){
                 renderSafeTiles(client, graphics, npc.getWorldLocation(), currentAttack);
             }
 
