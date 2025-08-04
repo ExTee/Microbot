@@ -62,6 +62,7 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
 
         try {
             npc = Rs2Npc.getNpc("Sol Heredit");
+//            npc = Rs2Npc.getNpc("Town Crier");
             ATTACK currentAttack = attackStack.peek();
             if (isAnimating){
                 renderSafeTiles(client, graphics, npc.getWorldLocation(), currentAttack);

@@ -83,7 +83,7 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
             else{
                 // If the previous attack is shield, or none, set to spear 1
                 Microbot.log("Previous attack was not SPEAR_1, setting current attack to SPEAR_1.");
-                attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_2);
+                attackIndicatorOverlay.attackStack.push(ATTACK.SPEAR_1);
             }
             attackIndicatorOverlay.isAnimating = true;
             return;
@@ -193,10 +193,10 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
     private boolean isIdle(){
         return (attackIndicatorOverlay.npc.getAnimation() == -1);
     }
-    private boolean alreadyAnimating(){
-        return attackIndicatorOverlay.isAnimating;
-    }
-
+//    private boolean alreadyAnimating(){
+//        return attackIndicatorOverlay.isAnimating;
+//    }
+//
     private boolean isSpearAttackAnimation(){
         return (attackIndicatorOverlay.npc.getAnimation() == 10883);
     }
@@ -209,10 +209,10 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
      */
 
 //    private boolean isSpearAttackAnimation(){
-//        return (attackIndicatorOverlay.npc.getAnimation() == 6865);
+//        return (attackIndicatorOverlay.npc.getAnimation() == 6863);
 //    }
 //    private boolean isShieldAttackAnimation(){
-//        return (attackIndicatorOverlay.npc.getAnimation() == 6863);
+//        return (attackIndicatorOverlay.npc.getAnimation() == 6865);
 //    }
 
 
