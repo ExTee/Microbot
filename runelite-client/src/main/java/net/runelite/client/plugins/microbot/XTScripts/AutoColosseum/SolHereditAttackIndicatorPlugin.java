@@ -33,6 +33,8 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
     @Inject
     private SolHereditAttackIndicatorOverlay attackIndicatorOverlay;
 
+    private int tickCounter = 1;
+
 //    @Inject
 //    ExampleScript exampleScript;
 
@@ -127,11 +129,18 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
         ATTACK previousAttack = attackIndicatorOverlay.attackStack.peek();
         int currentAnimation = attackIndicatorOverlay.npc.getAnimation();
 
-        Microbot.log( "Previous Attack : " + previousAttack + "  |  " + "Current Animation: " + currentAnimation);
+        Microbot.log( "Previous Attack : " + previousAttack + "  |  " + "Current Animation: " + currentAnimation + "  |  " + "Tick Counter: " + tickCounter);
 
         // Idle? Do nothing
-        if (currentAnimation == -1){
+        if (tickCounter > 0){
             Microbot.log("Idling");
+            tickCounter -= 1;
+            return;
+        }
+
+        if (isIdle()){
+            Microbot.log("Idling");
+            tickCounter = 0;
             return;
         }
 
@@ -148,7 +157,7 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
             }
             //Sleep for 5 more ticks
             Microbot.log("- Sleeping for 5 ticks");
-            sleepUntilTick(5);
+            tickCounter = 5;
 
 //            attackIndicatorOverlay.isAnimating = true;
 
@@ -167,21 +176,21 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
             }
             //Sleep for 5 more ticks
             Microbot.log("- Sleeping for 3 ticks");
-            sleepUntilTick(3);
+            tickCounter = 3;
             return;
         }
 
         if (attackIndicatorOverlay.npc.getAnimation() == ATTACK.COMBO_2TICK.getAnimationId()){
             Microbot.log("Normal Combo Attack - Sleeping for 10 ticks");
             attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
-            sleepUntilTick(10);
+            tickCounter = 10;
             return;
         }
 
-        if (attackIndicatorOverlay.npc.getAnimation() == ATTACK.COMBO_2TICK.getAnimationId()){
+        if (attackIndicatorOverlay.npc.getAnimation() == ATTACK.COMBO_3TICK.getAnimationId()){
             Microbot.log("Combo Attack under 50% - Sleeping for 11 ticks");
             attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
-            sleepUntilTick(11);
+            tickCounter = 11;
             return;
         }
 
@@ -191,7 +200,7 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
         // Set previous and current to None (Special attack resets normal attacks)
         attackIndicatorOverlay.attackStack.push(ATTACK.NOATTACK);
 
-
+        tickCounter = 0;
     }
 
     private boolean isIdle(){
@@ -208,10 +217,10 @@ public class SolHereditAttackIndicatorPlugin extends Plugin {
         return (attackIndicatorOverlay.npc.getAnimation() == 10885);
     }
 
-    public boolean sleepUntilTick(int ticksToWait) {
-        int startTick = Microbot.getClient().getTickCount();
-        return Global.sleepUntil(() -> Microbot.getClient().getTickCount() >= startTick + ticksToWait, ticksToWait * 600 + 2000);
-    }
+//    public boolean sleepUntilTick(int ticksToWait) {
+//        int startTick = Microbot.getClient().getTickCount();
+//        return Global.sleepUntil(() -> Microbot.getClient().getTickCount() >= startTick + ticksToWait, ticksToWait * 600 + 2000);
+//    }
 
     /*
     For Testing purposes on Town Crier
