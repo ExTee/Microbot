@@ -94,9 +94,20 @@ public class HerbrunScript extends Script {
                 
             }
 
-            if (!currentPatch.isInRange(10)) {
+            if (!currentPatch.isInRange(20)) {
+
+                if (currentPatch.getRegionName().equalsIgnoreCase("Harmony")){
+
+                    Rs2Inventory.interact("Construct. cape(t)", "Tele to POH");
+                    sleepUntil(() -> Rs2GameObject.exists(33410));
+                    Rs2GameObject.interact("Portal Nexus", "Harmony Island");
+                    sleepUntil(() -> !Rs2GameObject.exists(33410));
+                    sleep(1000);
+
+                }
+
                 HerbrunPlugin.status = "Walking to " + currentPatch.getRegionName();
-                Rs2Walker.walkTo(currentPatch.getLocation(), 20);
+                Rs2Walker.walkTo(currentPatch.getLocation(), 30);
 
             }
 
@@ -176,6 +187,19 @@ public class HerbrunScript extends Script {
                 return false;
             case "Harvestable":
                 Rs2GameObject.interact(obj, "Pick");
+
+                // === Modified below for quick picking ===
+                Rs2Player.waitForXpDrop(Skill.FARMING);
+                Rs2GameObject.interact(obj, "Pick");
+                sleep(200);
+                Rs2GameObject.interact(obj, "Pick");
+                sleep(200);
+                Rs2GameObject.interact(obj, "Pick");
+                sleep(200);
+                Rs2GameObject.interact(obj, "Pick");
+                sleep(200);
+                Rs2GameObject.interact(obj, "Pick");
+                // === End modification ===
                 sleepUntil(() -> getHerbPatchState(obj).equals("Empty") || Rs2Inventory.isFull(), 20000);
                 return false;
             case "Weeds":

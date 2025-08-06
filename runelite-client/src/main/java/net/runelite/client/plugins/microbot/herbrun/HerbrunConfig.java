@@ -144,16 +144,16 @@ public interface HerbrunConfig extends Config {
         return true;
     }
 
-    //    @ConfigItem(
-//            keyName = "enableHarmony",
-//            name = "Enable Harmony Island Patch",
-//            description = "Enable Harmony Island patch in herb run",
-//            position = 9,
-//            section = locationSection
-//    )
-//    default boolean enableHarmony() {
-//        return false;
-//    }
+    @ConfigItem(
+            keyName = "enableHarmony",
+            name = "Enable Harmony Island Patch",
+            description = "Enable Harmony Island patch in herb run",
+            position = 10,
+            section = locationSection
+    )
+    default boolean enableHarmony() {
+        return true;
+    }
     @ConfigSection(
             name = "Location toggles",
             description = "Location toggles",

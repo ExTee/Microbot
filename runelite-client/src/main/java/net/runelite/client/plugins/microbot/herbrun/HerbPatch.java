@@ -65,7 +65,8 @@ public class HerbPatch {
                 this.enabled = config.enableWeiss();
                 break;
             case "Harmony":
-                this.enabled = false;
+                this.items.put("Construct. cape(t)", 1);
+                this.enabled = config.enableHarmony();
                 break;
 
         }
@@ -91,6 +92,8 @@ public class HerbPatch {
 
         } else if(Objects.equals(regionName, "Troll Stronghold")) {
             return Rs2Player.getWorldLocation().getRegionID() == 11321;
+        } else if(Objects.equals(regionName, "Harmony")) {
+            return Rs2Player.getWorldLocation().getRegionID() == 15148;
         } else {
             return Rs2Player.getWorldLocation().distanceTo(location) < distance;
         }

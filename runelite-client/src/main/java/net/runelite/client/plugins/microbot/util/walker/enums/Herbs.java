@@ -14,7 +14,8 @@ public enum Herbs {
     KOUREND("Kourend", new WorldPoint(1736, 3553, 0)),
     MORYTANIA("Morytania", new WorldPoint(3600, 3523, 0)),
     TROLLIEHM("Troll Stronghold", new WorldPoint(2828, 3695, 0)),
-    WEISS("Weiss", new WorldPoint(2847, 3934, 0));
+    WEISS("Weiss", new WorldPoint(2847, 3934, 0)),
+    HARMONY("Harmony", new WorldPoint(3790, 2839, 0));
 
     private final String name;
     private WorldPoint worldPoint;
