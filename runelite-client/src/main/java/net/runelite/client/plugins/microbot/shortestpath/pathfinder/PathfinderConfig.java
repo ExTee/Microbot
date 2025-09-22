@@ -1,17 +1,9 @@
 package net.runelite.client.plugins.microbot.shortestpath.pathfinder;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.Constants;
-import net.runelite.api.GameState;
-import net.runelite.api.Quest;
-import net.runelite.api.QuestState;
-import net.runelite.api.Skill;
-import net.runelite.api.WorldType;
+import net.runelite.api.*;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.ItemID;
@@ -21,7 +13,9 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.globval.enums.InterfaceTab;
 import net.runelite.client.plugins.microbot.shortestpath.*;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
-import net.runelite.client.plugins.microbot.util.cache.*;
+import net.runelite.client.plugins.microbot.util.cache.Rs2PohCache;
+import net.runelite.client.plugins.microbot.util.cache.Rs2SkillCache;
+import net.runelite.client.plugins.microbot.util.cache.Rs2SpiritTreeCache;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
@@ -29,16 +23,18 @@ import net.runelite.client.plugins.microbot.util.magic.Rs2Spells;
 import net.runelite.client.plugins.microbot.util.magic.RuneFilter;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.poh.PohTeleports;
-import net.runelite.client.plugins.microbot.util.poh.data.HouseStyle;
 import net.runelite.client.plugins.microbot.util.tabs.Rs2Tab;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static net.runelite.client.plugins.microbot.shortestpath.TransportType.*;
+import static net.runelite.client.plugins.microbot.shortestpath.TransportType.TELEPORTATION_ITEM;
+import static net.runelite.client.plugins.microbot.shortestpath.TransportType.TELEPORTATION_SPELL;
 
 @Slf4j
 public class PathfinderConfig {
@@ -192,7 +188,7 @@ public class PathfinderConfig {
         }
     }
 
-    /** Specialized method for only updating player-held item and spell transports */
+    /** Specialized method for adding usableTeleports to `transports` */
     public void refreshTeleports(int packedLocation, int wildernessLevel) {
         Set<Transport> usableWildyTeleports = new HashSet<>(usableTeleports.size());
         if (ignoreTeleportAndItems) return;
@@ -255,15 +251,16 @@ public class PathfinderConfig {
         useGnomeGliders &= QuestState.FINISHED.equals(Rs2Player.getQuestState(Quest.THE_GRAND_TREE));
         useSpiritTrees &= QuestState.FINISHED.equals(Rs2Player.getQuestState(Quest.TREE_GNOME_VILLAGE));
         useQuetzals &= QuestState.FINISHED.equals(Rs2Player.getQuestState(Quest.TWILIGHTS_PROMISE));
-        usePoh &= PohTeleports.hasHouse();
 
         transports.clear();
         transportsPacked.clear();
         usableTeleports.clear();
-         // Check spirit tree farming states for farmable spirit trees
-        Rs2SpiritTreeCache.getInstance().update();       
-        //Rs2SpiritTreeCache.logAllTreeStates();                     
-        for (Map.Entry<WorldPoint, Set<Transport>> entry : allTransports.entrySet()) {
+
+        // Check spirit tree farming states for farmable spirit trees
+        Rs2SpiritTreeCache.getInstance().update();
+        //Rs2SpiritTreeCache.logAllTreeStates();
+
+        for (Map.Entry<WorldPoint, Set<Transport>> entry : createMergedList().entrySet()) {
             WorldPoint point = entry.getKey();
             Set<Transport> usableTransports = new HashSet<>(entry.getValue().size());
             for (Transport transport : entry.getValue()) {
@@ -283,11 +280,40 @@ public class PathfinderConfig {
                 transportsPacked.put(WorldPointUtil.packWorldPoint(point), usableTransports);
             }
         }
-        
+
         // Filter similar transports based on distance when walk with banked transports is enabled
         if (useBankItems && config.maxSimilarTransportDistance() > 0) {            
             filterSimilarTransports(target);                                    
         }
+    }
+
+    private Map<WorldPoint, Set<Transport>> createMergedList() {
+        if (!usePoh) return allTransports;
+        Map<WorldPoint, Set<Transport>> mergedTransports = new HashMap<>();
+
+        // Start with putting all the TSV imported persistent transports
+        for (var entry : allTransports.entrySet()) {
+            mergedTransports.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
+
+        // Add transports from PoH to somewhere in the world
+        for (var entry : Rs2PohCache.getAvailableTransportsMap(allTransports).entrySet()) {
+            mergedTransports
+                    .computeIfAbsent(entry.getKey(), k -> new HashSet<>())
+                    .addAll(entry.getValue());
+        }
+
+        // If we're already in Poh there's no reason to add teleports to Poh
+        if (PohTeleports.isInHouse()) {
+            return mergedTransports;
+        }
+        // Add transports from the world to PoH
+        for (var entry : PohTeleports.getTransportsToPoh().entrySet()) {
+            mergedTransports
+                    .computeIfAbsent(entry.getKey(), k -> new HashSet<>())
+                    .addAll(entry.getValue());
+        }
+        return mergedTransports;
     }
 
     public void refresh() {
@@ -312,7 +338,7 @@ public class PathfinderConfig {
                 }
                 // Quest check
 				if (entry.getQuests().entrySet().stream().anyMatch(qe -> {
-					QuestState playerState = Rs2QuestCache.getQuestState(qe.getKey());
+					QuestState playerState = Rs2Player.getQuestState(qe.getKey());
 					QuestState requiredState = qe.getValue();
 					int playerIndex = questStateOrder.indexOf(playerState);
 					int requiredIndex = questStateOrder.indexOf(requiredState);
@@ -321,11 +347,11 @@ public class PathfinderConfig {
 					return true;
 				}
                 // Varbit check
-                if (entry.getVarbits().stream().anyMatch(varbitCheck -> !varbitCheck.matches(Rs2VarbitCache.getVarbitValue(varbitCheck.getVarbitId())))) {
+                if (entry.getVarbits().stream().anyMatch(varbitCheck -> !varbitCheck.matches(Microbot.getVarbitValue(varbitCheck.getVarbitId())))) {
                     return true;
                 }
                 // Varplayer check
-                if (entry.getVarplayers().stream().anyMatch(varplayerCheck -> !varplayerCheck.matches(Rs2VarPlayerCache.getVarPlayerValue(varplayerCheck.getVarplayerId())))) {
+                if (entry.getVarplayers().stream().anyMatch(varplayerCheck -> !varplayerCheck.matches(Microbot.getVarbitPlayerValue(varplayerCheck.getVarplayerId())))) {
                     return true;
                 }
                 // Skill level check
@@ -406,7 +432,7 @@ public class PathfinderConfig {
 	private boolean completedQuests(Transport transport) {
 		return transport.getQuests().entrySet().stream()
 			.allMatch(entry -> {
-				QuestState playerState = Rs2QuestCache.getQuestState(entry.getKey());
+				QuestState playerState = Rs2Player.getQuestState(entry.getKey());
 				QuestState requiredState = entry.getValue();
 				int playerIndex = questStateOrder.indexOf(playerState);
 				int requiredIndex = questStateOrder.indexOf(requiredState);
@@ -417,13 +443,13 @@ public class PathfinderConfig {
     private boolean varbitChecks(Transport transport) {
         return transport.getVarbits().isEmpty() ||
 			transport.getVarbits().stream()
-				.allMatch(varbitCheck -> varbitCheck.matches(Rs2VarbitCache.getVarbitValue(varbitCheck.getVarbitId())));
+				.allMatch(varbitCheck -> varbitCheck.matches(Microbot.getVarbitValue(varbitCheck.getVarbitId())));
     }
 
 	private boolean varplayerChecks(Transport transport) {
 		return transport.getVarplayers().isEmpty() ||
 			transport.getVarplayers().stream()
-				.allMatch(varplayerCheck -> varplayerCheck.matches(Rs2VarPlayerCache.getVarPlayerValue(varplayerCheck.getVarplayerId())));
+				.allMatch(varplayerCheck -> varplayerCheck.matches(Microbot.getVarbitPlayerValue(varplayerCheck.getVarplayerId())));
 	}
 
     private boolean useTransport(Transport transport) {
@@ -449,16 +475,19 @@ public class PathfinderConfig {
 		}
         // Check Spirit Tree specific requirements (farming state for farmable trees)
         if (transport.getType() == TransportType.SPIRIT_TREE) return isSpiritTreeUsable(transport);
+
         // If the transport has varbit requirements & the varbits do not match
         if (!varbitChecks(transport)) {
 			log.debug("Transport ( O: {} D: {} ) requires varbits {}", transport.getOrigin(), transport.getDestination(), transport.getVarbits());
 			return false;
 		}
+
         // If the transport has varplayer requirements & the varplayers do not match
         if (!varplayerChecks(transport)) {
 			log.debug("Transport ( O: {} D: {} ) requires varplayers {}", transport.getOrigin(), transport.getDestination(), transport.getVarplayers());
 			return false;
 		}
+
         // If you don't have the required currency & amount for transport
         if (transport.getCurrencyAmount() > 0 
             && !Rs2Inventory.hasItemAmount(transport.getCurrencyName(), transport.getCurrencyAmount())
@@ -466,19 +495,12 @@ public class PathfinderConfig {
 			log.debug("Transport ( O: {} D: {} ) requires {} x {}", transport.getOrigin(), transport.getDestination(), transport.getCurrencyAmount(), transport.getCurrencyName());
 			return false;
 		}
+
         // Check if Teleports are globally disabled
         if (TransportType.isTeleport(transport.getType()) && Rs2Walker.disableTeleports) {
 			log.debug("Transport ( O: {} D: {} ) is a teleport but teleports are globally disabled", transport.getOrigin(), transport.getDestination());
 			return false;
 		}
-        if (transport.getType() == TransportType.POH) {
-            boolean isUsable = Rs2PohCache.isTransportUsable(transport);
-            if (!isUsable)
-            {
-                log.debug("Transport ( O: {} D: {} ) is a POH teleport but is not usable", transport.getOrigin(), transport.getDestination());
-            }
-            return isUsable;
-        }
 
         // Check Teleport Item Settings
         if (transport.getType() == TELEPORTATION_ITEM) {
@@ -509,16 +531,6 @@ public class PathfinderConfig {
 			return hasRequiredItems;
 		}
 
-        //Check PoH fairy ring requirement
-        if(transport.getType() == FAIRY_RING && HouseStyle.isPohExitLocation(transport.getOrigin())) {
-            boolean isUsable = Rs2PohCache.isTransportUsable(transport);
-            if (!isUsable) {
-                log.debug("Transport ( O: {} D: {} ) is a POH-Fairy-ring teleport but is not usable", transport.getOrigin(), transport.getDestination());
-            }
-            return isUsable;
-        }
-        
-
         return true;
     }
 
@@ -543,7 +555,7 @@ public class PathfinderConfig {
 	private void updateActionBasedOnQuestState(Transport transport) {
 		if (Objects.equals(transport.getType(), TransportType.SHIP) &&
 			(Objects.equals(transport.getName(), "Veos") || Objects.equals(transport.getName(), "Captain Magoro"))) {
-			QuestState questState = Rs2QuestCache.getQuestState(Quest.CLIENT_OF_KOUREND);
+			QuestState questState = Rs2Player.getQuestState(Quest.CLIENT_OF_KOUREND);
 			if (questState != QuestState.FINISHED && !Objects.equals(transport.getAction(), "Talk-to")) {
 				transport.setAction("Talk-to");
 			}
