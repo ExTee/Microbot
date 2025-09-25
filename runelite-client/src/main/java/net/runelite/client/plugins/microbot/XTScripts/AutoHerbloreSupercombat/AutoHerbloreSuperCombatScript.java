@@ -16,27 +16,21 @@ import java.util.concurrent.TimeUnit;
 public class AutoHerbloreSuperCombatScript extends Script {
 
     private final String[] ingredients = new String[]{"Torstol", "Super strength(4)", "Super attack(4)", "Super defence(4)"};
-    private boolean shouldStop = false;
 
     public boolean run() {
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
                 if (!super.run()) return;
-                if (shouldStop) return;
 
                 if (!Rs2Equipment.isWearing("Prescription goggles")){
-                    Microbot.log("Prescription goggles not equipped, stopping script");
-                    shouldStop = true;
-                    return;
+                    shutdown();
                 }
 
                 if (Rs2Bank.isOpen()){
                     for (String ingredient : ingredients){
                         if (Rs2Bank.count(ingredient, true) < 7){
-                            Microbot.log("Insufficient " + ingredient + " in bank, stopping script");
-                            shouldStop = true;
-                            return;
+                            shutdown();
                         }
                     }
                 }
@@ -65,7 +59,6 @@ public class AutoHerbloreSuperCombatScript extends Script {
     
     @Override
     public void shutdown() {
-        shouldStop = true;
         super.shutdown();
     }
 
