@@ -11,9 +11,9 @@ import javax.inject.Inject;
 import java.awt.*;
 
 @PluginDescriptor(
-        name = "HerbloreSuperCombatPotions",
+        name = "<html>[<font color=#ff69b4>\uD83D\uDC30</font>] " + "AutoSuperCombatPot",
         description = "Creates Super Combat Potions",
-        tags = {},
+        tags = {"XT"},
         enabledByDefault = false
 )
 @Slf4j
@@ -33,6 +33,7 @@ public class AutoHerbloreSuperCombatPlugin extends Plugin {
 
     protected void shutDown() {
         script.shutdown();
+
     }
     int ticks = 10;
     @Subscribe

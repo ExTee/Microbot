@@ -3,10 +3,6 @@ package net.runelite.client.plugins.microbot.XTScripts.AutoSaplings;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
-
-import java.util.LinkedList;
-import java.util.Queue;
 
 @ConfigGroup("AutoSaplings")
 public interface AutoSaplingsConfig extends Config {
