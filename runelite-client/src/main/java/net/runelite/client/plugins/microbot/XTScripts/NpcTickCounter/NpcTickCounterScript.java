@@ -115,6 +115,12 @@ public class NpcTickCounterScript extends Script {
         Microbot.log("Tick counter and NPC interactions reset");
     }
 
+    public void resetCounterByAnimation(int animationId) {
+        tickCount = 0;
+        npcInteractionCounts.clear();
+        Microbot.log("Tick counter reset by animation ID: " + animationId);
+    }
+
     public int getTickCount() {
         return tickCount;
     }

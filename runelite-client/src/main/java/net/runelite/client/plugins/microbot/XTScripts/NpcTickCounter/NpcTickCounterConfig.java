@@ -79,4 +79,15 @@ public interface NpcTickCounterConfig extends Config {
     default int maxTickCount() {
         return 0;
     }
+
+    @ConfigItem(
+            keyName = "resetAnimationId",
+            name = "Reset Animation ID",
+            description = "Animation ID that will reset the tick counter (0 = disabled)",
+            position = 4,
+            section = generalSection
+    )
+    default int resetAnimationId() {
+        return 0;
+    }
 }

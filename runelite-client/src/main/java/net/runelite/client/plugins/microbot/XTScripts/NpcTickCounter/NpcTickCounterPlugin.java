@@ -2,7 +2,9 @@ package net.runelite.client.plugins.microbot.XTScripts.NpcTickCounter;
 
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.events.AnimationChanged;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -46,5 +48,14 @@ public class NpcTickCounterPlugin extends Plugin {
     protected void shutDown() {
         npcTickCounterScript.shutdown();
         overlayManager.remove(npcTickCounterOverlay);
+    }
+
+    @Subscribe
+    public void onAnimationChanged(AnimationChanged animationChanged) {
+        if (config.resetAnimationId() > 0 &&
+            animationChanged.getActor() != null &&
+            animationChanged.getActor().getAnimation() == config.resetAnimationId()) {
+            npcTickCounterScript.resetCounterByAnimation(config.resetAnimationId());
+        }
     }
 }
