@@ -36,7 +36,7 @@ import net.runelite.client.plugins.loottracker.LootTrackerItem;
 import net.runelite.client.plugins.loottracker.LootTrackerPlugin;
 import net.runelite.client.plugins.loottracker.LootTrackerRecord;
 import net.runelite.client.plugins.microbot.configs.SpecialAttackConfigs;
-import net.runelite.client.plugins.microbot.qualityoflife.scripts.pouch.PouchScript;
+import net.runelite.client.plugins.microbot.pouch.PouchScript;
 import net.runelite.client.plugins.microbot.util.cache.Rs2VarPlayerCache;
 import net.runelite.client.plugins.microbot.util.cache.Rs2VarbitCache;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
@@ -283,12 +283,7 @@ public class Microbot {
         if (loggedIn) {
             return true;
         }
-        if (client == null) {
-            return false;
-        }
-        GameState idx = client.getGameState();
-        loggedIn = idx == GameState.LOGGED_IN && Rs2Widget.isWidgetVisible(REPORT_BUTTON_COMPONENT_ID);
-        return loggedIn;
+        return false;
     }
 
     public static boolean isHopping() {
@@ -717,11 +712,6 @@ public class Microbot {
 
     private static boolean isPluginEnabled(String name) {
         return isPluginEnabled(getPlugin(name));
-    }
-
-    @Deprecated(since = "1.6.2 - Use Rs2Player variant")
-    public static QuestState getQuestState(Quest quest) {
-        return getClientThread().runOnClientThreadOptional(() -> quest.getState(client)).orElse(null);
     }
 
     public static void writeVersionToFile(String version) throws IOException {
