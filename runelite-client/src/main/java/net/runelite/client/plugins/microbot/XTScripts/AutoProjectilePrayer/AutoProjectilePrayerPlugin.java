@@ -9,6 +9,8 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
+import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
+import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.client.plugins.microbot.util.prayer.Rs2Prayer;
 import net.runelite.client.plugins.microbot.util.prayer.Rs2PrayerEnum;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -50,6 +52,10 @@ public class AutoProjectilePrayerPlugin extends Plugin {
         rangedProjectileIDs = parseStringToIntArray(config.RANGED_PROJECTILE_IDS());
         magicProjectileIDs = parseStringToIntArray(config.MAGIC_PROJECTILE_IDS());
         meleeProjectileIDs = parseStringToIntArray(config.MELEE_PROJECTILE_IDS());
+
+        npcName = Integer.parseInt(config.NpcID());
+        rangedSpotAnimationIDs = parseStringToIntArray(config.RangedSpotAnimationIDs());
+        magicSpotAnimationIDs = parseStringToIntArray(config.MagicSpotAnimationIDs());
     }
 
     protected void shutDown() {
@@ -85,7 +91,9 @@ public class AutoProjectilePrayerPlugin extends Plugin {
     int[] rangedProjectileIDs;
     int[] magicProjectileIDs;
     int[] meleeProjectileIDs;
-
+    int[] rangedSpotAnimationIDs;
+    int[] magicSpotAnimationIDs;
+    int npcName;
 
 
     PROJECTILE_TYPE activeProjectile = PROJECTILE_TYPE.NONE_PROJECTILE;
@@ -93,39 +101,54 @@ public class AutoProjectilePrayerPlugin extends Plugin {
     @Subscribe
     public void onGameTick(GameTick tick)
     {
-        System.out.println("Protecting against Ranged for: " + Arrays.toString(rangedProjectileIDs));
+//        System.out.println("Protecting against Ranged for: " + Arrays.toString(rangedProjectileIDs));
 
-        activeProjectile = PROJECTILE_TYPE.NONE_PROJECTILE;
+//        activeProjectile = PROJECTILE_TYPE.NONE_PROJECTILE;
 
-        for (Projectile p : Microbot.getClient().getProjectiles()) {
-            System.out.println("Projectile ID: " + p.getId());
+//        for (Projectile p : Microbot.getClient().getProjectiles()) {
+//            System.out.println("Projectile ID: " + p.getId());
+//
+//            if (foundInArray(p.getId(), rangedProjectileIDs)){
+//                activeProjectile = PROJECTILE_TYPE.RANGED_PROJECTILE;
+//            }
+//            if (foundInArray(p.getId(), magicProjectileIDs)){
+//                activeProjectile = PROJECTILE_TYPE.MAGIC_PROJECTILE;
+//            }
+//            if (foundInArray(p.getId(), meleeProjectileIDs)){
+//                activeProjectile = PROJECTILE_TYPE.MELEE_PROJECTILE;
+//            }
+//        }
 
-            if (foundInArray(p.getId(), rangedProjectileIDs)){
-                activeProjectile = PROJECTILE_TYPE.RANGED_PROJECTILE;
-            }
-            if (foundInArray(p.getId(), magicProjectileIDs)){
-                activeProjectile = PROJECTILE_TYPE.MAGIC_PROJECTILE;
-            }
-            if (foundInArray(p.getId(), meleeProjectileIDs)){
-                activeProjectile = PROJECTILE_TYPE.MELEE_PROJECTILE;
-            }
+        Rs2NpcModel npc = Rs2Npc.getNpc(npcName);
 
-        }
-        switch(activeProjectile){
-            case NONE_PROJECTILE:
+        if (npc != null){
+            int poseAnimation = npc.getGraphic();
+
+            if (foundInArray(poseAnimation, rangedSpotAnimationIDs)){activeProjectile = PROJECTILE_TYPE.RANGED_PROJECTILE;}
+            if (foundInArray(poseAnimation, magicSpotAnimationIDs)){activeProjectile = PROJECTILE_TYPE.MAGIC_PROJECTILE;}
+
+
+            switch(activeProjectile){
+                case NONE_PROJECTILE:
 //                Rs2Prayer.toggle(Rs2Prayer.getActiveProtectionPrayer(), false);
-                Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MELEE, true);
-                break;
-            case RANGED_PROJECTILE:
-                Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_RANGE, true);
-                break;
-            case MAGIC_PROJECTILE:
-                Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MAGIC, true);
-                break;
-            case MELEE_PROJECTILE:
-                Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MELEE, true);
-                break;
+//                Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MELEE, true);
+                    break;
+                case RANGED_PROJECTILE:
+                    Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_RANGE, true);
+                    break;
+                case MAGIC_PROJECTILE:
+                    Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MAGIC, true);
+                    break;
+                case MELEE_PROJECTILE:
+                    Rs2Prayer.toggle(Rs2PrayerEnum.PROTECT_MELEE, true);
+                    break;
+            }
         }
+        else{
+            activeProjectile = PROJECTILE_TYPE.NONE_PROJECTILE;
+            Rs2Prayer.toggle(Rs2Prayer.getActiveProtectionPrayer(), false);
+        }
+
     }
 
 }

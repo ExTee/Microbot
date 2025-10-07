@@ -42,4 +42,31 @@ public interface AutoProjectilePrayerConfig extends Config {
     default String MELEE_PROJECTILE_IDS() {
         return "";
     }
+
+    @ConfigItem(
+            keyName = "TargetNpc",
+            name = "Npc to pray against:",
+            description = "one npc name"
+    )
+    default String NpcID() {
+        return "";
+    }
+
+    @ConfigItem(
+            keyName = "RangedSpotAnimationIDs",
+            name = "Pray ranged against the following SpotAnimationIDs:",
+            description = "Comma-separated list of Spot Animation IDs"
+    )
+    default String RangedSpotAnimationIDs() {
+        return "";
+    }
+
+    @ConfigItem(
+            keyName = "MagicSpotAnimationIDs",
+            name = "Pray magic against the following SpotAnimationIDs:",
+            description = "Comma-separated list of Spot Animation IDs"
+    )
+    default String MagicSpotAnimationIDs() {
+        return "";
+    }
 }
