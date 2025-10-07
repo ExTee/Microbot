@@ -27,15 +27,13 @@ public class AutoHerbloreSuperCombatScript extends Script {
                     shutdown();
                 }
 
-
                 if (Rs2Bank.isOpen()){
                     for (String ingredient : ingredients){
-                        if (!Rs2Bank.hasItem(ingredient)){
+                        if (Rs2Bank.count(ingredient, true) < 7){
                             shutdown();
                         }
                     }
                 }
-
 
                 if (!Rs2Inventory.containsAll(ingredients) & Rs2Bank.isOpen()){
                     withdrawSuppliesAndCloseBank();
@@ -52,9 +50,6 @@ public class AutoHerbloreSuperCombatScript extends Script {
                     return;
                 }
 
-
-
-
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
@@ -69,10 +64,7 @@ public class AutoHerbloreSuperCombatScript extends Script {
 
     private void openBankAndDepositAll(){
         sleepUntil(Rs2Bank::openBank, 20000);
-//        sleep(1000,1300);
-//        sleep(500,800);
         Rs2Bank.depositAll();
-//        sleepUntil(Rs2Inventory::isEmpty);
         sleepGaussian(200,20);
     }
 

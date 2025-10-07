@@ -2,9 +2,7 @@ package net.runelite.client.plugins.microbot.XTScripts.AutoSaplings;
 
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
@@ -12,7 +10,7 @@ import javax.inject.Inject;
 import java.awt.*;
 
 @PluginDescriptor(
-        name = "AutoSaplings",
+        name = "<html>[<font color=#ff69b4>\uD83D\uDC30</font>] " + "AutoSaplings",
         description = "Creates Saplings",
         tags = {"XT"},
         enabledByDefault = false

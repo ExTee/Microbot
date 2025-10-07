@@ -40,20 +40,9 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
 
     Rs2NpcModel npc;
 
-//     = Rs2Npc.getNpc("Town Crier");
-
-//    @Setter
-//    @Getter
-//    private ATTACK previousAttack = ATTACK.NOATTACK;
-//
-//    @Setter
-//    @Getter
-//    private ATTACK currentAttack = ATTACK.NOATTACK;
 
     // Attack Stack
     public Stack<ATTACK> attackStack = new Stack<>();
-
-//    boolean isAnimating = false;
 
     @Inject
     SolHereditAttackIndicatorOverlay(SolHereditAttackIndicatorPlugin plugin)
@@ -62,8 +51,6 @@ public class SolHereditAttackIndicatorOverlay extends Overlay {
         setLayer(OverlayLayer.ABOVE_SCENE);
         setPriority(PRIORITY_MED);
     }
-
-
 
     @Override
     public Dimension render(Graphics2D graphics) {
