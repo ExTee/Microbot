@@ -1355,7 +1355,9 @@ public class Rs2Walker {
             ShortestPathPlugin.getPathfinderConfig().setIgnoreTeleportAndItems(true);
             Pathfinder pathfinderWithoutTeleports = new Pathfinder(ShortestPathPlugin.getPathfinderConfig(), start, ends);
             pathfinderWithoutTeleports.run();
-            if (pathfinder.getPath().size() >= pathfinderWithoutTeleports.getPath().size()) {
+            var lastPath = pathfinderWithoutTeleports.getPath().get(pathfinderWithoutTeleports.getPath().size()-1);
+            var pathWithoutTeleportsIsReachable = lastPath.distanceTo(ends.stream().findFirst().orElse(lastPath)) <= config.reachedDistance();
+            if (pathWithoutTeleportsIsReachable && pathfinder.getPath().size() >= pathfinderWithoutTeleports.getPath().size()) {
                 ShortestPathPlugin.setPathfinder(pathfinderWithoutTeleports);
             } else {
                 ShortestPathPlugin.setPathfinder(pathfinder);
@@ -1560,7 +1562,7 @@ public class Rs2Walker {
                         if (handleTeleportSpell(transport)) {
                             sleepUntil(() -> !Rs2Player.isAnimating());
                             sleepUntilTrue(() -> Rs2Player.getWorldLocation().distanceTo(transport.getDestination()) < OFFSET);
-                            Rs2Tab.switchToInventoryTab();
+                            Rs2Tab.switchTo(InterfaceTab.INVENTORY);
                             break;
                         }
                     }
@@ -2006,7 +2008,6 @@ public class Rs2Walker {
      * @param range        an int of range to which the boundaries will be drawn in a square,
      * @return true if the player's current location is within the specified area, false otherwise
      */
-    @Deprecated(since = "1.5.5", forRemoval = true)
     public static boolean isInArea(WorldPoint centerOfArea, int range) {
         WorldPoint seCorner = new WorldPoint(centerOfArea.getX() + range, centerOfArea.getY() - range, centerOfArea.getPlane());
         WorldPoint nwCorner = new WorldPoint(centerOfArea.getX() - range, centerOfArea.getY() + range, centerOfArea.getPlane());
@@ -2136,7 +2137,7 @@ public class Rs2Walker {
         }
 
         if (Rs2Tab.getCurrentTab() != InterfaceTab.CHAT) {
-            Rs2Tab.switchToGroupingTab();
+            Rs2Tab.switchTo(InterfaceTab.CHAT);
             sleepUntil(() -> Rs2Tab.getCurrentTab() == InterfaceTab.CHAT);
         }
 
