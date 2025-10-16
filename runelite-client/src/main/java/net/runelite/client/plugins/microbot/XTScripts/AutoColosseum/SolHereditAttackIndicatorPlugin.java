@@ -14,7 +14,7 @@ import java.awt.*;
 
 
 @PluginDescriptor(
-        name = "SolHereditAttackIndicator",
+        name = "<html>[<font color=#ff69b4>\uD83D\uDC30</font>] " + "SolHereditAttackIndicator",
         description = "Highlights safe tiles for Sol Heredit",
         tags = {},
         enabledByDefault = false

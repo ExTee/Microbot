@@ -42,7 +42,7 @@ import net.runelite.client.plugins.microbot.XTScripts.theatre.Verzik.Verzik;
 import net.runelite.client.plugins.microbot.XTScripts.theatre.Xarpus.Xarpus;
 
 @PluginDescriptor(
-	name = "Theatre of Blood",
+	name = "<html>[<font color=#ff69b4>\uD83D\uDC30</font>] " + "Theatre of Blood",
 	description = "All-in-one plugin for Theatre of Blood",
 	tags = {"ToB", "Theatre", "raids", "bloat", "verzik", "nylo", "xarpus", "sotetseg", "maiden"},
 	enabledByDefault = false

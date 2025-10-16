@@ -30,21 +30,21 @@ public class ExamplePlugin extends Plugin {
     private OverlayManager overlayManager;
 
     @Inject
-    private ExampleOverlay exampleOverlay;
+    private ExampleOverlay overlay;
 
     @Inject
-    ExampleScript exampleScript;
+    ExampleScript script;
 
     @Override
     protected void startUp() throws AWTException {
         if (overlayManager != null) {
-            overlayManager.add(exampleOverlay);
+            overlayManager.add(overlay);
         }
-        exampleScript.run(config);
+        script.run(config);
     }
 
     protected void shutDown() {
-        exampleScript.shutdown();
-        overlayManager.remove(exampleOverlay);
+        script.shutdown();
+        overlayManager.remove(overlay);
     }
 }
