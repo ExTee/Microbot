@@ -12,7 +12,7 @@ import java.awt.*;
 
 @PluginDescriptor(
         name = "<html>[<font color=#ff69b4>\uD83D\uDC30</font>] "+ "AutoNatureRC",
-        description = "An example plugin",
+        description = "Runecrafts nature runes with Max Cape + Achievement Cape",
         tags = {},
         enabledByDefault = false
 )

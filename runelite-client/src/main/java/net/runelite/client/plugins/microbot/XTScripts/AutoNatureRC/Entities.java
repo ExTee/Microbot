@@ -5,6 +5,12 @@ import net.runelite.api.coords.WorldPoint;
 public class Entities {
     static final int COLOSSAL_POUCH = 26784;
     static final int MAX_CAPE = 13280;
+    static final int HAT_OF_THE_EYE = 26850;
+    static final int TOP_OF_THE_EYE = 26852;
+    static final int BOTTOMS_OF_THE_EYE = 26854;
+    static final int BOOTS_OF_THE_EYE = 26856;
+    static final int GRACEFUL_GLOVES = 11858;
+
     static final int ACHIEVEMENT_CAPE = 19476;
     static final int CRAFTING_GULID_BANK = 14886;
     static final int SHILO_LADDER = 16679;

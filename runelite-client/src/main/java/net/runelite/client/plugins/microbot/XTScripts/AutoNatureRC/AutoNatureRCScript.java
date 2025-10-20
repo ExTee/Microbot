@@ -1,6 +1,8 @@
 package net.runelite.client.plugins.microbot.XTScripts.AutoNatureRC;
 
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.globval.enums.InterfaceTab;
@@ -19,6 +21,7 @@ import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static net.runelite.client.plugins.microbot.XTScripts.AutoNatureRC.Entities.*;
+import net.runelite.client.plugins.microbot.Microbot;
 
 public class AutoNatureRCScript extends Script {
 
@@ -28,12 +31,25 @@ public class AutoNatureRCScript extends Script {
 
     public boolean run(AutoNatureRCConfig config) {
 
-
-
-        state = State.BANKING;
+        // Antiban settings
         Rs2Antiban.resetAntibanSettings();
         Rs2Antiban.antibanSetupTemplates.applyGeneralBasicSetup();
+        Rs2AntibanSettings.naturalMouse = false;
         Rs2AntibanSettings.actionCooldownChance = 0.1;
+
+        // Plugin setup (requires QOL plugin)
+        Plugin qolPlugin = Microbot.getPlugin("net.runelite.client.plugins.microbot.qualityoflife.QoLPlugin");
+        if (Microbot.isPluginEnabled(qolPlugin)){
+            Microbot.log("QOL Plugin is enabled");
+        }
+        else {
+            Microbot.getClientThread().runOnSeperateThread(() -> {
+                Microbot.startPlugin(qolPlugin);
+                return true;
+            });
+        }
+
+        state = State.STARTUP;
 
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
@@ -46,6 +62,7 @@ public class AutoNatureRCScript extends Script {
                 Microbot.log(String.valueOf(state));
                 switch (state) {
                     case STARTUP:
+                        startUp();
                         state = State.BANKING;
                         break;
 
@@ -93,13 +110,45 @@ public class AutoNatureRCScript extends Script {
         return true;
     }
 
+    private void startUp(){
 
+        if (Rs2Player.distanceTo(new WorldPoint(2936, 3281, 0)) > 20){
+            if (!Rs2Bank.isNearBank(20)){
+                shutdown();
+            }
+        }
+
+        int[] items = {MAX_CAPE, HAT_OF_THE_EYE, TOP_OF_THE_EYE, BOTTOMS_OF_THE_EYE, BOOTS_OF_THE_EYE, GRACEFUL_GLOVES};
+
+        sleepUntil(Rs2Bank::openBank);
+        sleep(250,500);
+        Rs2Bank.depositAll();
+        sleep(600,1000);
+        Rs2Bank.depositEquipment();
+        sleep(600,1000);
+
+        for (int item : items){
+            Rs2Bank.withdrawAndEquip(item);
+            sleep(250,500);
+        }
+
+        Rs2Bank.withdrawItem(COLOSSAL_POUCH);
+        sleep(250,500);
+        Rs2Bank.withdrawItem(ACHIEVEMENT_CAPE);
+        sleep(250,500);
+        sleepUntil(Rs2Bank::closeBank);
+        sleep(250,500);
+        Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
+        sleep(250,500);
+        Rs2Equipment.interact("Max cape", "Crafting Guild");
+        sleep(250,500);
+        Rs2Tab.switchTo(InterfaceTab.INVENTORY);
+        sleep(1000,1300);
+    }
 
     private void teleportToCraftingGuild(){
         Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
-//        Rs2Equipment.invokeMenu(Rs2Equipment.get(MAX_CAPE), "Crafting Guild");
         Rs2Equipment.interact("Max cape", "Crafting Guild");
-//        sleepUntil(() -> Rs2Player.isInArea(CRAFTING_GUILD_POINT, 5));
         Rs2Tab.switchTo(InterfaceTab.INVENTORY);
         sleepUntil(() -> Rs2GameObject.exists(CRAFTING_GULID_BANK));
 
@@ -110,6 +159,9 @@ public class AutoNatureRCScript extends Script {
     }
     private void bank(){
         Rs2GameObject.interact("Bank chest", "Use");
+
+        if (!Rs2Inventory.isOpen()){Rs2Tab.switchTo(InterfaceTab.INVENTORY);};
+
         sleepUntil(Rs2Bank::isOpen);
 
         if (Rs2Inventory.contains("Nature rune")){
