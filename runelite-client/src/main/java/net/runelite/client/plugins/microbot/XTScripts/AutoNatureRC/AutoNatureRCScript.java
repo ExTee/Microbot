@@ -2,7 +2,6 @@ package net.runelite.client.plugins.microbot.XTScripts.AutoNatureRC;
 
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.Plugin;
-import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.globval.enums.InterfaceTab;
@@ -12,7 +11,6 @@ import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
-import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.tabs.Rs2Tab;
 
@@ -21,13 +19,11 @@ import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static net.runelite.client.plugins.microbot.XTScripts.AutoNatureRC.Entities.*;
-import net.runelite.client.plugins.microbot.Microbot;
 
 public class AutoNatureRCScript extends Script {
 
     public static final String version = "1.0.0";
     private State state = State.STARTUP;
-    private long lastActionTime = 0;
 
     public boolean run(AutoNatureRCConfig config) {
 
@@ -56,8 +52,6 @@ public class AutoNatureRCScript extends Script {
                 if (!super.run()) return;
                 if (!Microbot.isLoggedIn()) return;
                 if (Rs2AntibanSettings.actionCooldownActive) return;
-
-                long currentTime = System.currentTimeMillis();
 
                 Microbot.log(String.valueOf(state));
                 switch (state) {
@@ -143,7 +137,7 @@ public class AutoNatureRCScript extends Script {
         Rs2Equipment.interact("Max cape", "Crafting Guild");
         sleep(250,500);
         Rs2Tab.switchTo(InterfaceTab.INVENTORY);
-        sleep(1000,1300);
+        sleep(3000,4000);
     }
 
     private void teleportToCraftingGuild(){
@@ -160,7 +154,7 @@ public class AutoNatureRCScript extends Script {
     private void bank(){
         Rs2GameObject.interact("Bank chest", "Use");
 
-        if (!Rs2Inventory.isOpen()){Rs2Tab.switchTo(InterfaceTab.INVENTORY);};
+        if (!Rs2Inventory.isOpen()){Rs2Tab.switchTo(InterfaceTab.INVENTORY);}
 
         sleepUntil(Rs2Bank::isOpen);
 
