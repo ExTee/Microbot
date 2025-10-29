@@ -51,4 +51,13 @@ public interface AutoSaplingsConfig extends Config {
         return false;
     }
 
+    @ConfigItem(
+            keyName = "enableMaple",
+            name = "Maple",
+            description = "Enable Maple sapling job"
+    )
+    default boolean enableMaple() {
+        return false;
+    }
+
 }

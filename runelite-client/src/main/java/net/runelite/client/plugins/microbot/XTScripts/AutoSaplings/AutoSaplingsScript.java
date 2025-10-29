@@ -74,6 +74,14 @@ public class AutoSaplingsScript extends Script {
                 "Dragonfruit sapling"
         );
 
+        final SaplingJob mapleSaplingJob = new SaplingJob(
+                "Maple",
+                "Maple seed",
+                "Maple seedling",
+                "Maple seedling (w)",
+                "Maple sapling"
+        );
+
         Queue<SaplingJob> jobQueue = new LinkedList<SaplingJob>();
 
         if (config.enableYew()) {
@@ -94,6 +102,10 @@ public class AutoSaplingsScript extends Script {
 
         if (config.enableDragonfruit()) {
             jobQueue.add(dragonfruitSaplingJob);
+        }
+
+        if (config.enableMaple()) {
+            jobQueue.add(mapleSaplingJob);
         }
         return jobQueue;
     };
