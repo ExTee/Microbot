@@ -150,30 +150,37 @@ public class ShipwreckSalvagingScript extends Script {
             } catch (Exception ex) {
                 Microbot.log("Example Script error: " + ex.getMessage());
             }
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, 600, TimeUnit.MILLISECONDS);
         return true;
     }
 
     public void withdrawSalvage(){
-        Rs2Sailing.openCargo();
-        sleep(2000);
+//        Rs2Sailing.openCargo();
+        Rs2GameObject.interact(60283, "Open");
+        sleepUntil(() -> Rs2Widget.isWidgetVisible(164,16));
+        sleep(1000);
 
-        Widget salvage = Rs2Widget.getWidget(943, 10).getChild(0);
+//        Widget salvage = Rs2Widget.getWidget(943, 10).getChild(0);
+        Widget salvage = Rs2Widget.getWidget(61800458).getChild(0);
         if (salvage.getItemQuantity() > 50){
-            Rs2Widget.clickWidget(salvage);
+            Microbot.getMouse().move(salvage.getBounds());
+            Microbot.getMouse().click();
+            sleep(600);
+            Microbot.getMouse().click();
             sleep(1000);
+            Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
         }
         else{
             Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
-//            sleep(3*60*1000);
-            sleep(30000);
+            sleep(3*60*1000 + 2000);
+//            sleep(30000);
         }
     }
     public void useSalvagingStation(){
         if (!Rs2Player.isAnimating()){
             Rs2GameObject.interact(SAILING_SALVAGING_STATION_3X8, "Sort-salvage");
             sleep(2000);
-            sleepUntil(() -> !Rs2Inventory.contains(SALVAGE), 2*60*1000);
+            sleepUntil(() -> (!Rs2Inventory.contains(SALVAGE) | !Rs2Player.isAnimating()), 2*60*1000);
         }
     }
 
@@ -189,9 +196,9 @@ public class ShipwreckSalvagingScript extends Script {
     public void harvestCrystalExtractor(){
         sleep(600,1000);
         Rs2GameObject.interact(SAILING_CRYSTAL_EXTRACTOR_ACTIVATED, "Harvest");
-        sleep(3000);
+        sleep(2000);
         sleepUntil(()-> !Rs2Player.isAnimating());
-        sleep(3000);
+        sleep(1200);
     }
 
     public void handleAlchAndDrop(){

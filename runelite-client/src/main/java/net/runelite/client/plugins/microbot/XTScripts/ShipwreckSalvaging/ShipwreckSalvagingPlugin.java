@@ -64,14 +64,11 @@ public class ShipwreckSalvagingPlugin extends Plugin {
         String MSG_CRYSTAL_EXTRACTOR_READY = "<col=00ffff>Your crystal extractor has harvested a crystal mote!";
         if (message.equalsIgnoreCase(MSG_CRYSTAL_EXTRACTOR_READY)){
             script.harvestCrystalExtractor();
-            if (script.state == State.SORTING){
-                Rs2GameObject.interact(SAILING_SALVAGING_STATION_3X8, "Sort-salvage");
-            }
+//            if (script.state == State.SORTING){
+//                Rs2GameObject.interact(SAILING_SALVAGING_STATION_3X8, "Sort-salvage");
+//            }
             script.state = State.CRYSTAL;
         }
-
-
-//        Microbot.log("ChatMessage: " + message);
     }
 
     protected void shutDown() {
