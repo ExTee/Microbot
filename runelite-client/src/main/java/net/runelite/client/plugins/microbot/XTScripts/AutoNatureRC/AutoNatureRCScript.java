@@ -112,47 +112,72 @@ public class AutoNatureRCScript extends Script {
             }
         }
 
-        int[] items = {MAX_CAPE, HAT_OF_THE_EYE, TOP_OF_THE_EYE, BOTTOMS_OF_THE_EYE, BOOTS_OF_THE_EYE, GRACEFUL_GLOVES};
 
+
+//        int[] items = {MAX_CAPE, HAT_OF_THE_EYE, TOP_OF_THE_EYE, BOTTOMS_OF_THE_EYE, BOOTS_OF_THE_EYE, GRACEFUL_GLOVES};
+        int[] items = {RC_CAPE, HAT_OF_THE_EYE, TOP_OF_THE_EYE, BOTTOMS_OF_THE_EYE, BOOTS_OF_THE_EYE, GRACEFUL_GLOVES, RING_OF_ENDURANCE};
         sleepUntil(Rs2Bank::openBank);
-        sleep(250,500);
+        sleep(500,750);
         Rs2Bank.depositAll();
         sleep(600,1000);
         Rs2Bank.depositEquipment();
-        sleep(600,1000);
+        sleep(2000,2500);
 
         for (int item : items){
             Rs2Bank.withdrawAndEquip(item);
-            sleep(250,500);
+            sleep(500,750);
         }
 
         Rs2Bank.withdrawItem(COLOSSAL_POUCH);
-        sleep(250,500);
+        sleep(500,750);
         Rs2Bank.withdrawItem(ACHIEVEMENT_CAPE);
-        sleep(250,500);
+        sleep(500,750);
         sleepUntil(Rs2Bank::closeBank);
-        sleep(250,500);
-        Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
-        sleep(250,500);
-        Rs2Equipment.interact("Max cape", "Crafting Guild");
-        sleep(250,500);
+        sleep(500,750);
+//        Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
+//        sleep(500,750);
+//        Rs2Equipment.interact("Max cape", "Crafting Guild");
+//        Rs2Inventory.interact("Achievement diary cape", "Desert");
+        Rs2Inventory.interact(ACHIEVEMENT_CAPE, "Desert");
+        sleep(500,750);
         Rs2Tab.switchTo(InterfaceTab.INVENTORY);
         sleep(3000,4000);
     }
 
     private void teleportToCraftingGuild(){
-        Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
-        Rs2Equipment.interact("Max cape", "Crafting Guild");
-        Rs2Tab.switchTo(InterfaceTab.INVENTORY);
-        sleepUntil(() -> Rs2GameObject.exists(CRAFTING_GULID_BANK));
+//        Rs2Tab.switchTo(InterfaceTab.EQUIPMENT);
+//        Rs2Equipment.interact("Max cape", "Crafting Guild");
+//        Rs2Tab.switchTo(InterfaceTab.INVENTORY);
+//        sleepUntil(() -> Rs2GameObject.exists(CRAFTING_GULID_BANK));
+        Rs2Inventory.interact(ACHIEVEMENT_CAPE, "Desert");
 
+        sleepUntil(() -> Rs2GameObject.exists(DESERT_BANK));
+        Microbot.log("Desert bank available : " + String.valueOf(Rs2GameObject.exists(DESERT_BANK)));
     }
     private void pouchDelay(){
 //        sleep(800, 1000);
         sleep(300,400);
     }
+
+    private void manageEnergyPotionWhileBankOpen(int targetEnergyLevel) {
+        if (Rs2Player.getRunEnergy() < targetEnergyLevel) {
+
+            if (!Rs2Inventory.contains("Stamina potion")) {
+                Rs2Bank.withdrawOne("Stamina potion");
+                sleepUntil(() -> Rs2Inventory.contains(false, "Stamina potion"));
+            }
+
+            if (Rs2Inventory.contains(false, "Stamina potion")) {
+                Rs2Inventory.interact("Stamina potion", "Drink");
+                sleep(500,800);
+                Rs2Bank.depositAll("Stamina potion");
+            }
+        }
+    }
+
     private void bank(){
-        Rs2GameObject.interact("Bank chest", "Use");
+//        Rs2GameObject.interact("Bank chest", "Use");
+        Rs2GameObject.interact(DESERT_BANK, "Use");
 
         if (!Rs2Inventory.isOpen()){Rs2Tab.switchTo(InterfaceTab.INVENTORY);}
 
@@ -162,6 +187,13 @@ public class AutoNatureRCScript extends Script {
             Microbot.log("Depositing nature runes");
             Rs2Bank.depositAll("Nature rune");
         }
+
+        if (Rs2Inventory.contains("Pure essence")){
+            Microbot.log("Depositing uncrafted pure essence");
+            Rs2Bank.depositAll("Pure essence");
+        }
+
+        manageEnergyPotionWhileBankOpen(50);
 
         Microbot.log("Withdrawing pure essence 1/3");
         Rs2Bank.withdrawAll("Pure essence");
