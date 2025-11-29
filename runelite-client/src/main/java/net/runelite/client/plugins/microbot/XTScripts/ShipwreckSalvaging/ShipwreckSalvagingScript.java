@@ -51,7 +51,7 @@ public class ShipwreckSalvagingScript extends Script {
 
     State state;
 
-    public static final String SALVAGE= "Fremennik salvage";
+    public static final String SALVAGE= "Opulent salvage";
 
     public static final int SALVAGING_HOOK_RUNE = 60495;
     public static final int SAILING_SALVAGING_STATION_3X8 = 59701;
@@ -62,11 +62,9 @@ public class ShipwreckSalvagingScript extends Script {
     public static final int SAILING_FREMENNIK_SHIPWRECK_STUMP = 60477;
 
     public static final String[] ALCH_ITEMS = {
-        "Fremennik helm",
-        "Berserker helm",
-        "Archer helm",
-        "Farseer helm",
-        "Warrior helm",
+        "Rune spear",
+        "Dragon spear",
+        "Shield left half"
     };
 
     public static final String[] KEPT_ITEMS = {
@@ -74,20 +72,23 @@ public class ShipwreckSalvagingScript extends Script {
         "Coins",
         "Divine rune pouch",
         "Crystal shard",
-        "Astral rune",
-        "Adamantite nails",
-        "Rune nails",
+        "Dragon nails",
+        "Mouldy doll",
+        "Dragon cannon barrel",
+        "Sailor's amulet (inert)",
         "Rune cannonball",
-        "Cotton seed",
-        "Fremennik helm",
-        "Berserker helm",
-        "Archer helm",
-        "Farseer helm",
-        "Warrior helm",
-        "Ironwood seed",
-        "Smashed mirror",
-        "Rosewood seed",
-        "Sailors' amulet (inert)"
+        "Dragon cannonball",
+        "Toadflax seed",
+        "Avantoe seed",
+        "Kwuarm seed",
+        "Snapdragon seed",
+        "Cadantine seed",
+        "Snape grass seed",
+        "Dwarf weed seed",
+        "Torstol seed",
+        "Platinum token",
+        "Loop half of key",
+        "Tooth half of key"
     };
 
 
