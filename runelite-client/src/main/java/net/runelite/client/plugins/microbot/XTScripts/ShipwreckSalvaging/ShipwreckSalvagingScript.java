@@ -1,9 +1,7 @@
 package net.runelite.client.plugins.microbot.XTScripts.ShipwreckSalvaging;
 
-import net.runelite.api.DynamicObject;
-import net.runelite.api.NPC;
-import net.runelite.api.ScriptID;
-import net.runelite.api.VarClientInt;
+import net.runelite.api.*;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
@@ -30,6 +28,7 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static net.runelite.api.widgets.ComponentID.BANK_ITEM_CONTAINER;
@@ -44,6 +43,7 @@ enum State {
     SORTING,
     ALCH_DROP,
     WORLDHOP,
+    SELF_SALVAGE,
 }
 
 
@@ -53,13 +53,14 @@ public class ShipwreckSalvagingScript extends Script {
 
     public static final String SALVAGE= "Opulent salvage";
 
-    public static final int SALVAGING_HOOK_RUNE = 60495;
+    public static final int SALVAGING_HOOK_RUNE_RIGHT = 60507;
+    public static final int SALVAGING_HOOK_RUNE_LEFT = 60508;
     public static final int SAILING_SALVAGING_STATION_3X8 = 59701;
     public static final int SAILING_CRYSTAL_EXTRACTOR_ACTIVATED = 59702;
     public static final int SAILING_CRYSTAL_EXTRACTOR_DEACTIVATED = 59703;
 
-    public static final int SAILING_FREMENNIK_SHIPWRECK = 60476;
-    public static final int SAILING_FREMENNIK_SHIPWRECK_STUMP = 60477;
+    public static final int SAILING_MERCHANT_SHIPWRECK = 60478;
+    public static final int SAILING_MERCHANT_SHIPWRECK_STUMP = 60479;
 
     public static final String[] ALCH_ITEMS = {
         "Rune spear",
@@ -78,20 +79,14 @@ public class ShipwreckSalvagingScript extends Script {
         "Sailor's amulet (inert)",
         "Rune cannonball",
         "Dragon cannonball",
-        "Toadflax seed",
-        "Avantoe seed",
-        "Kwuarm seed",
         "Snapdragon seed",
-        "Cadantine seed",
         "Snape grass seed",
-        "Dwarf weed seed",
         "Torstol seed",
         "Platinum token",
         "Loop half of key",
-        "Tooth half of key"
+        "Tooth half of key",
+        "Crystal key"
     };
-
-
 
 
     public boolean run(ShipwreckSalvagingConfig config) {
@@ -128,7 +123,14 @@ public class ShipwreckSalvagingScript extends Script {
                         }
                         else{
                             //TODO
-                            if (state != State.CRYSTAL){state = State.RETRIEVE;}
+                            if (state != State.CRYSTAL){
+                                state = State.SELF_SALVAGE;
+
+                                if(Rs2Widget.getWidget(15007747).getText().equals("This shipwreck has already been plundered. Perhaps there's another<br>one nearby?")){
+                                    state = State.WORLDHOP;
+                                }
+
+                            }
                         }
                         break;
                     case RETRIEVE:
@@ -141,12 +143,21 @@ public class ShipwreckSalvagingScript extends Script {
                         break;
                     case ALCH_DROP:
                         handleAlchAndDrop();
-                        if (state != State.CRYSTAL){state = State.IDLE;}
+                        if (state != State.CRYSTAL){state = State.RETRIEVE;}
                         break;
                     case CRYSTAL:
                         harvestCrystalExtractor();
                         state = State.IDLE;
                         break;
+                    case SELF_SALVAGE:
+                        selfSalvagingHook();
+                        if (state != State.CRYSTAL){state = State.IDLE;}
+                        break;
+                    case WORLDHOP:
+                        sleep(60000);
+                        state = State.IDLE;
+                        break;
+
                 }
             } catch (Exception ex) {
                 Microbot.log("Example Script error: " + ex.getMessage());
@@ -173,15 +184,44 @@ public class ShipwreckSalvagingScript extends Script {
         }
         else{
             Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
-            sleep(3*60*1000 + 2000);
+//            sleep(3*60*1000 + 2000);
+//            sleep(1000);
 //            sleep(30000);
         }
     }
+
+    public void selfSalvagingHook(){
+
+        if (!Rs2Player.isAnimating()){
+            Rs2GameObject.interact(SALVAGING_HOOK_RUNE_LEFT, "Deploy");
+            sleep(2000);
+        }
+        sleepUntil(() -> !Rs2Player.isAnimating());
+    }
+
+
+
     public void useSalvagingStation(){
         if (!Rs2Player.isAnimating()){
             Rs2GameObject.interact(SAILING_SALVAGING_STATION_3X8, "Sort-salvage");
             sleep(2000);
-            sleepUntil(() -> (!Rs2Inventory.contains(SALVAGE) | !Rs2Player.isAnimating()), 2*60*1000);
+
+
+            if (Rs2Npc.getNpc(15344).getAnimation() == -1){
+
+                openSailingMenu();
+                scrollDown();
+                Widget SALVAGING_HOOK_LEFT_MENU = Rs2Widget.getWidget(937, 25).getChild(47);
+                Rs2Widget.clickWidget(SALVAGING_HOOK_LEFT_MENU);
+                sleep(1200);
+                Widget CREW_ASSIGNATION_ROW_CABIN_BOY = Rs2Widget.getWidget(937, 20).getChild(2);
+                Rs2Widget.clickWidget(CREW_ASSIGNATION_ROW_CABIN_BOY);
+            }
+            sleep(5000);
+            sleepUntil(() -> (!Rs2Inventory.contains(SALVAGE) | !Rs2Player.isAnimating(1200)), 2*60*1000);
+        }
+        else{
+            sleepUntil(() -> (!Rs2Inventory.contains(SALVAGE) | !Rs2Player.isAnimating(1200)), 2*60*1000);
         }
     }
 
@@ -197,9 +237,13 @@ public class ShipwreckSalvagingScript extends Script {
     public void harvestCrystalExtractor(){
         sleep(600,1000);
         Rs2GameObject.interact(SAILING_CRYSTAL_EXTRACTOR_ACTIVATED, "Harvest");
-        sleep(2000);
-        sleepUntil(()-> !Rs2Player.isAnimating());
         sleep(1200);
+        sleepUntil(()-> !Rs2Player.isAnimating(), 2000);
+//        sleep(1200);
+        if (!Rs2Inventory.isFull()) {
+            Rs2GameObject.interact(SALVAGING_HOOK_RUNE_LEFT, "Deploy");
+            sleep(2000);
+        }
     }
 
     public void handleAlchAndDrop(){
