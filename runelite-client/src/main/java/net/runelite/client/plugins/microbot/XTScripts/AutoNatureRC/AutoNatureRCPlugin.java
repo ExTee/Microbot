@@ -27,24 +27,14 @@ public class AutoNatureRCPlugin extends Plugin {
     }
 
     @Inject
-    private OverlayManager overlayManager;
-
-    @Inject
-    private AutoNatureRCOverlay overlay;
-
-    @Inject
     AutoNatureRCScript script;
 
     @Override
     protected void startUp() throws AWTException {
-        if (overlayManager != null) {
-            overlayManager.add(overlay);
-        }
         script.run(config);
     }
 
     protected void shutDown() {
         script.shutdown();
-        overlayManager.remove(overlay);
     }
 }

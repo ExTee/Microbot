@@ -1773,11 +1773,11 @@ public class Rs2GameObject {
 
     public static boolean clickObject(TileObject object, String action) {
         if (object == null) return false;
-        if (!Rs2Sailing.isOnBoat() && Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(object.getWorldLocation()) > 51) {
-            Microbot.log("Object with id " + object.getId() + " is not close enough to interact with. Walking to the object....");
-            Rs2Walker.walkTo(object.getWorldLocation());
-            return false;
-        }
+//        if (!Rs2Sailing.isOnBoat() && Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(object.getWorldLocation()) > 51) {
+//            Microbot.log("Object with id " + object.getId() + " is not close enough to interact with. Walking to the object....");
+//            Rs2Walker.walkTo(object.getWorldLocation());
+//            return false;
+//        }
 
         try {
 

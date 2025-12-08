@@ -159,21 +159,6 @@ public class AutoNatureRCScript extends Script {
         sleep(300,400);
     }
 
-    private void manageEnergyPotionWhileBankOpen(int targetEnergyLevel) {
-        if (Rs2Player.getRunEnergy() < targetEnergyLevel) {
-
-            if (!Rs2Inventory.contains("Stamina potion")) {
-                Rs2Bank.withdrawOne("Stamina potion");
-                sleepUntil(() -> Rs2Inventory.contains(false, "Stamina potion"));
-            }
-
-            if (Rs2Inventory.contains(false, "Stamina potion")) {
-                Rs2Inventory.interact("Stamina potion", "Drink");
-                sleep(500,800);
-                Rs2Bank.depositAll("Stamina potion");
-            }
-        }
-    }
 
     private void bank(){
 //        Rs2GameObject.interact("Bank chest", "Use");
@@ -193,8 +178,6 @@ public class AutoNatureRCScript extends Script {
             Rs2Bank.depositAll("Pure essence");
         }
 
-        manageEnergyPotionWhileBankOpen(50);
-
         Microbot.log("Withdrawing pure essence 1/3");
         Rs2Bank.withdrawAll("Pure essence");
         sleepUntil(Rs2Inventory::isFull);
@@ -212,6 +195,11 @@ public class AutoNatureRCScript extends Script {
         Microbot.log("Withdrawing pure essence 3/3");
         Rs2Bank.withdrawAll("Pure essence");
 
+        if (!Rs2Inventory.isFull()){
+            //Fallback
+            Rs2Bank.withdrawAll("Pure essence");
+        }
+
 //        pouchDelay();
         sleep(200,350);
         sleepUntil(Rs2Bank::closeBank);
@@ -222,8 +210,12 @@ public class AutoNatureRCScript extends Script {
         Microbot.getMouse().click(bounds);
         sleepUntil(() -> Rs2Player.isInArea(SHILO_TELEPORT_POINT, 10));
         Rs2GameObject.interact(SHILO_LADDER, "Climb-down");
+        sleep(1200,1600);
         sleepUntil(() -> Rs2GameObject.exists(SHILO_ROCKS));
+        sleep(600,1200);
     }
+
+
 
     private void climbRocks(){
         Rs2GameObject.interact(SHILO_ROCKS, "Climb");
